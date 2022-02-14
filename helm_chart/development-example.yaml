@@ -1,0 +1,25 @@
+namespace: nft-scraper-development
+
+env:
+  - name: AWS_REGION
+    value: ""
+  - name: AWS_ACCESS_KEY_ID
+    value: ""
+  - name: AWS_SECRET_ACCESS_KEY
+    value: ""
+  - name: AWS_QUEUE_URL
+    value: ""
+  - name: ETHEREUM_NETWORK
+    value: ""
+  - name: INFURA_PROJECT_ID
+    value: ""
+  - name: INFURA_PROJECT_SECRET
+    value: ""
+  - name: PORT
+    value: "8080"
+  - name: SESSION_SECRET
+    value: "123"
+  - name: MONGODB_URI
+    value: ""
+  - name: APP_ENV
+    value: "dev"
