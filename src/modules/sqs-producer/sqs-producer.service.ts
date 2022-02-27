@@ -42,9 +42,10 @@ export class SqsProducerService implements OnModuleInit, SqsProducerHandler {
    * #3. save tasks to DB
    * #4. mark collection as processed
    */
-  @Cron(CronExpression.EVERY_5_SECONDS)
+  @Cron(CronExpression.EVERY_10_SECONDS)
   public async checkCollection() {
     // Check if there is any unprocessed collection
+    const currentBlock = await this.ethereumService.getBlockNum();
     const lastBlock = await this.nftBlockService.getLatestOne();
     if (!lastBlock) {
       this.logger.log(
@@ -57,6 +58,13 @@ export class SqsProducerService implements OnModuleInit, SqsProducerHandler {
     } else {
       // TODO: check if we should use BigNumber here
       this.nextBlock = lastBlock.blockNum + 1;
+    }
+
+    if (this.nextBlock > currentBlock) {
+      this.logger.log(
+        `[Block Producer] Skip this round as we are processing block: ${this.nextBlock}, which exceed current block: ${currentBlock}, `,
+      );
+      return;
     }
 
     // Prepare queue messages
