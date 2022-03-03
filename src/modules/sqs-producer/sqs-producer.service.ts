@@ -73,7 +73,7 @@ export class SqsProducerService implements OnModuleInit, SqsProducerHandler {
       body: {
         blockNum: this.nextBlock,
       },
-      groupId: 'block-producer',
+      groupId: this.nextBlock.toString(),
       deduplicationId: this.nextBlock.toString(),
     };
     await this.sendMessage(message);
