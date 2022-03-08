@@ -100,7 +100,7 @@ export class SqsProducerService implements OnModuleInit, SqsProducerHandler {
     );
 
     // Increase the record
-    await this.nftBlockService.updateLatestOne(this.nextBlock);
+    await this.nftBlockService.updateLatestOne(this.nextBlock, this.blockDirection);
   }
 
   async sendMessage<T = any>(payload: Message<T> | Message<T>[]) {
