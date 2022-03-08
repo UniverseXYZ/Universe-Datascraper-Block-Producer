@@ -14,6 +14,7 @@ import { NFTBlockTaskService } from '../nft-block-task/nft-block-task.service';
 @Injectable()
 export class SqsProducerService implements OnModuleInit, SqsProducerHandler {
   public sqsProducer: Producer;
+  public blockDirection: string;
   private readonly logger = new Logger(SqsProducerService.name);
   nextBlock: number;
 
