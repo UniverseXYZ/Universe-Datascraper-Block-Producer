@@ -81,7 +81,7 @@ export class SqsProducerService implements OnModuleInit, SqsProducerHandler {
     
     if (this.nextBlock < this.configService.get('default_start_block')){
       this.logger.log(
-        `[Block Producer] [DOWN] Skip this round as we are processing block: ${this.nextBlock}, which exceed current block: ${currentBlock}, `,
+        `[Block Producer] [DOWN] Skip this round as we are processing block: ${this.nextBlock}, which exceed target block: ${this.configService.get('default_start_block')}, `,
       );
       return;
     }
