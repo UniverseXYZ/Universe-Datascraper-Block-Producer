@@ -68,7 +68,7 @@ export class SqsProducerService implements OnModuleInit, SqsProducerHandler {
     } else {
       // TODO: check if we should use BigNumber here
       this.nextBlock = this.blockDirection === 'up' 
-        ? lastBlock.blockNum + 1;
+        ? lastBlock.blockNum + 1
         : lastBlock.blockNum - 1;
     }
 
