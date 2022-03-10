@@ -14,6 +14,7 @@ import { NFTBlockTaskService } from '../nft-block-task/nft-block-task.service';
 @Injectable()
 export class SqsProducerService implements OnModuleInit, SqsProducerHandler {
   public sqsProducer: Producer;
+  public blockDirection: string;
   private readonly logger = new Logger(SqsProducerService.name);
   nextBlock: number;
 
@@ -34,6 +35,7 @@ export class SqsProducerService implements OnModuleInit, SqsProducerHandler {
       queueUrl: this.configService.get('aws.queueUrl'),
       sqs: new AWS.SQS(),
     });
+    this.blockDirection = this.configService.get('block_direction');
   }
 
   /**
@@ -46,23 +48,40 @@ export class SqsProducerService implements OnModuleInit, SqsProducerHandler {
   public async checkCollection() {
     // Check if there is any unprocessed collection
     const currentBlock = await this.ethereumService.getBlockNum();
-    const lastBlock = await this.nftBlockService.getLatestOne();
+    const lastBlock = await this.nftBlockService.getLatestOne(this.blockDirection);
+    
     if (!lastBlock) {
       this.logger.log(
         `[Block Producer] Havent started yet, will be start with the default block number: ${this.configService.get(
           'default_start_block',
         )}`,
       );
-      this.nextBlock = this.configService.get('default_start_block');
-      await this.nftBlockService.insertLatestOne(this.nextBlock);
+      if(this.blockDirection === 'up'){
+        this.nextBlock = this.configService.get('default_start_block');
+      } else if(this.blockDirection === 'down'){
+        this.nextBlock = currentBlock; 
+      } else {
+        this.logger.log('[Block Producer] BLOCK_DIRECTION NOT CONFGIRURED');
+        return
+      }
+      await this.nftBlockService.insertLatestOne(this.nextBlock, this.blockDirection);
     } else {
       // TODO: check if we should use BigNumber here
-      this.nextBlock = lastBlock.blockNum + 1;
+      this.nextBlock = this.blockDirection === 'up' 
+        ? lastBlock.blockNum + 1
+        : lastBlock.blockNum - 1;
     }
 
     if (this.nextBlock > currentBlock) {
       this.logger.log(
-        `[Block Producer] Skip this round as we are processing block: ${this.nextBlock}, which exceed current block: ${currentBlock}, `,
+        `[Block Producer] [UP] Skip this round as we are processing block: ${this.nextBlock}, which exceed current block: ${currentBlock}, `,
+      );
+      return;
+    }
+    
+    if (this.nextBlock < this.configService.get('default_start_block')){
+      this.logger.log(
+        `[Block Producer] [DOWN] Skip this round as we are processing block: ${this.nextBlock}, which exceed target block: ${this.configService.get('default_start_block')}, `,
       );
       return;
     }
@@ -82,7 +101,7 @@ export class SqsProducerService implements OnModuleInit, SqsProducerHandler {
     );
 
     // Increase the record
-    await this.nftBlockService.updateLatestOne(this.nextBlock);
+    await this.nftBlockService.updateLatestOne(this.nextBlock, this.blockDirection);
   }
 
   async sendMessage<T = any>(payload: Message<T> | Message<T>[]) {

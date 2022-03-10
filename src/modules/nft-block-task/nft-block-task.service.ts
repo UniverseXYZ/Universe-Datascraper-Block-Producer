@@ -11,6 +11,7 @@ import {
 export class NFTBlockTaskService {
   private readonly logger = new Logger(NFTBlockTaskService.name);
   private readonly CURRENT_SCRAPING_BLOCK = 'CURRENT_SCRAPING_BLOCK';
+  private readonly CURRENT_SCRAPING_BLOCK_DOWN = 'CURRENT_SCRAPING_BLOCK_DOWN';
 
   constructor(
     @InjectModel(NFTBlockTask.name)
@@ -32,24 +33,24 @@ export class NFTBlockTaskService {
     });
   }
 
-  async insertLatestOne(blockNum: number) {
+  async insertLatestOne(blockNum: number, blockDir: string) {
     await this.nftBlockTaskModel.insertMany({
-      messageId: this.CURRENT_SCRAPING_BLOCK,
+      messageId: blockDir === 'up' ? this.CURRENT_SCRAPING_BLOCK : this.CURRENT_SCRAPING_BLOCK_DOWN,
       blockNum,
       status: 'sent',
     });
   }
 
-  async updateLatestOne(blockNum: number) {
+  async updateLatestOne(blockNum: number, blockDir: string) {
     await this.nftBlockTaskModel.updateOne(
-      { messageId: this.CURRENT_SCRAPING_BLOCK },
+      { messageId: blockDir === 'up' ? this.CURRENT_SCRAPING_BLOCK : this.CURRENT_SCRAPING_BLOCK_DOWN },
       { blockNum },
     );
   }
 
-  async getLatestOne() {
+  async getLatestOne(blockDir: string) {
     return await this.nftBlockTaskModel.findOne({
-      messageId: this.CURRENT_SCRAPING_BLOCK,
+      messageId: blockDir === 'up' ? this.CURRENT_SCRAPING_BLOCK : this.CURRENT_SCRAPING_BLOCK_DOWN,
     });
   }
 }
