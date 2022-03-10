@@ -56,14 +56,7 @@ export class SqsProducerService implements OnModuleInit, SqsProducerHandler {
           'default_start_block',
         )}`,
       );
-      if(this.blockDirection === 'up'){
-        this.nextBlock = this.configService.get('default_start_block');
-      } else if(this.blockDirection === 'down'){
-        this.nextBlock = currentBlock; 
-      } else {
-        this.logger.log('[Block Producer] BLOCK_DIRECTION NOT CONFGIRURED');
-        return
-      }
+      this.nextBlock = this.configService.get('default_start_block');
       await this.nftBlockService.insertLatestOne(this.nextBlock, this.blockDirection);
     } else {
       // TODO: check if we should use BigNumber here
@@ -72,14 +65,14 @@ export class SqsProducerService implements OnModuleInit, SqsProducerHandler {
         : lastBlock.blockNum - 1;
     }
 
-    if (this.nextBlock > currentBlock) {
+    if (this.blockDirection == "up" && this.nextBlock > currentBlock) {
       this.logger.log(
         `[Block Producer] [UP] Skip this round as we are processing block: ${this.nextBlock}, which exceed current block: ${currentBlock}, `,
       );
       return;
     }
     
-    if (this.nextBlock < this.configService.get('default_start_block')){
+    if (this.blockDirection == "down" && this.nextBlock < this.configService.get('default_end_block')){
       this.logger.log(
         `[Block Producer] [DOWN] Skip this round as we are processing block: ${this.nextBlock}, which exceed target block: ${this.configService.get('default_start_block')}, `,
       );
