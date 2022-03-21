@@ -48,55 +48,56 @@ export class SqsProducerService implements OnModuleInit, SqsProducerHandler {
   public async checkCollection() {
     // Check if there is any unprocessed collection
     const currentBlock = await this.ethereumService.getBlockNum();
-    const lastBlock = await this.nftBlockService.getLatestOne(this.blockDirection);
-    
-    if (!lastBlock) {
-      this.logger.log(
-        `[Block Producer] Havent started yet, will be start with the default block number: ${this.configService.get(
-          'default_start_block',
-        )}`,
-      );
-      this.nextBlock = this.configService.get('default_start_block');
-      await this.nftBlockService.insertLatestOne(this.nextBlock, this.blockDirection);
-    } else {
-      // TODO: check if we should use BigNumber here
-      this.nextBlock = this.blockDirection === 'up' 
-        ? lastBlock.blockNum + 1
-        : lastBlock.blockNum - 1;
-    }
+    for(let i = 0; i < 10; i++){
+      const lastBlock = await this.nftBlockService.getLatestOne(this.blockDirection);
 
-    if (this.blockDirection == "up" && this.nextBlock > currentBlock) {
-      this.logger.log(
-        `[Block Producer] [UP] Skip this round as we are processing block: ${this.nextBlock}, which exceed current block: ${currentBlock}, `,
-      );
-      return;
-    }
-    
-    if (this.blockDirection == "down" && this.nextBlock < this.configService.get('default_end_block')){
-      this.logger.log(
-        `[Block Producer] [DOWN] Skip this round as we are processing block: ${this.nextBlock}, which exceed target block: ${this.configService.get('default_start_block')}, `,
-      );
-      return;
-    }
+      if (!lastBlock) {
+        this.logger.log(
+          `[Block Producer] Havent started yet, will be start with the default block number: ${this.configService.get(
+            'default_start_block',
+          )}`,
+        );
+        this.nextBlock = this.configService.get('default_start_block');
+        await this.nftBlockService.insertLatestOne(this.nextBlock, this.blockDirection);
+      } else {
+        // TODO: check if we should use BigNumber here
+        this.nextBlock = this.blockDirection === 'up' 
+          ? lastBlock.blockNum + 1
+          : lastBlock.blockNum - 1;
+      }
 
-    // Prepare queue messages
-    const message: Message<QueueMessageBody> = {
-      id: this.nextBlock.toString(),
-      body: {
-        blockNum: this.nextBlock,
-      },
-      groupId: this.nextBlock.toString(),
-      deduplicationId: this.nextBlock.toString(),
-    };
-    await this.sendMessage(message);
-    this.logger.log(
-      `[Block Producer] Successfully sent block num: ${this.nextBlock}`,
-    );
+      if (this.blockDirection == "up" && this.nextBlock > currentBlock) {
+        this.logger.log(
+          `[Block Producer] [UP] Skip this round as we are processing block: ${this.nextBlock}, which exceed current block: ${currentBlock}, `,
+        );
+        return;
+      }
+      
+      if (this.blockDirection == "down" && this.nextBlock < this.configService.get('default_end_block')){
+        this.logger.log(
+          `[Block Producer] [DOWN] Skip this round as we are processing block: ${this.nextBlock}, which exceed target block: ${this.configService.get('default_start_block')}, `,
+        );
+        return;
+      }
 
-    // Increase the record
-    await this.nftBlockService.updateLatestOne(this.nextBlock, this.blockDirection);
+      // Prepare queue messages
+      const message: Message<QueueMessageBody> = {
+        id: this.nextBlock.toString(),
+        body: {
+          blockNum: this.nextBlock,
+        },
+        groupId: this.nextBlock.toString(),
+        deduplicationId: this.nextBlock.toString(),
+      };
+      await this.sendMessage(message);
+      this.logger.log(
+        `[Block Producer] Successfully sent block num: ${this.nextBlock}`,
+      );
+
+      // Increase the record
+      await this.nftBlockService.updateLatestOne(this.nextBlock, this.blockDirection);
+    }
   }
-
   async sendMessage<T = any>(payload: Message<T> | Message<T>[]) {
     const originalMessages = Array.isArray(payload) ? payload : [payload];
     const messages = originalMessages.map((message) => {
