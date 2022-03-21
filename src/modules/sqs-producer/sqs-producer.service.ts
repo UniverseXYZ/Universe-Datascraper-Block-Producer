@@ -44,7 +44,7 @@ export class SqsProducerService implements OnModuleInit, SqsProducerHandler {
    * #3. save tasks to DB
    * #4. mark collection as processed
    */
-  @Cron(CronExpression.EVERY_10_SECONDS)
+  @Cron(CronExpression.EVERY_SECOND)
   public async checkCollection() {
     // Check if there is any unprocessed collection
     const currentBlock = await this.ethereumService.getBlockNum();
