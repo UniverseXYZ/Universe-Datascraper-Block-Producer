@@ -5,6 +5,7 @@ export default () => ({
   port: process.env.APP_PORT,
   alchemy_token: process.env.ALCHEMY_TOKEN,
   chainstack_url: process.env.CHAINSTACK_URL,
+  quicknode_url: process.env.QUICKNODE_URL,
   app_env: process.env.APP_ENV,
   block_direction: process.env.BLOCK_DIRECTION,
   ethereum_network: process.env.ETHEREUM_NETWORK,
